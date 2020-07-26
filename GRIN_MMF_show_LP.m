@@ -10,8 +10,9 @@ Rho = inf;
 %Length = 0.1*ones(1,10);
 %Rho = 0.2 + 0.05*rand(1,numel(Length));
 
+n_count_modes = 45;
 [ T, n_modes, lm_map, propconst, E, img_size, refractive_idx ]...
-              = GRIN_MMF_simTM_LG( lambda, b, D, Length, Rho, N, 90 );
+              = GRIN_MMF_simTM_LG( lambda, b, D, Length, Rho, N, n_count_modes );
 
 %% showing the refractive index
 range = linspace(-img_size/2, img_size/2, N);

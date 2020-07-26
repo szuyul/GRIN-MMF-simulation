@@ -163,34 +163,3 @@ for ii = 1:n_count_modes % output
 end
     K = blkdiag(K,K);
 end
-%{
-function b = f_factorial(a)
-    if mod(a,1) == 0
-        b = factorial(a);
-    else
-        switch a
-            case 0.5
-                b = 0.8862269254;
-            case 1.5
-                b = 1.32934038818;
-            case 2.5
-                b = 3.32335097045;
-            case 3.5
-                b = 11.6317283966;
-            case 4.5
-                b = 52.3427777846;
-            case 5.5
-                b = 287.885277815;
-            case 6.5
-                b = 1871.2543058;
-            case 7.5
-                b = 14034.4072935;
-            case 8.5
-                b = 119292.461995;
-            otherwise
-                b = inf;
-        end
-    end
-end
-
-%}
