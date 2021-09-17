@@ -14,13 +14,13 @@ function [ T, pq_map, betas, E, img_size, refractive_idx ]...
 % 
 % outputs:
 % T is the transmission matrix of a straight or deformed GRIN MMF in HG representation at a certain wavelength
+% NMode is the number of counted modes for a GRIN MMF
 % pq_map is a 3 by n_count_modes matrix, with each column as the characteristics of one particular mode
 %                                      1st row as the angular momentum, p + q + 1
 %                                      2nd row as the p indices (# of nulls in x)
 %                                      3rd row as the q indices (# of nulls in y)
 % beta is a 1 by n_modes matrix, the propagation constants (unit: m) of each HG mode
 % E is a N by N by n_modes matrix, the transverse electric scalar field distribution of each HG mode in one polarization
-% img_size is the physical size (unit: m) of the transverse field images
 % refractive_idx is the refractive index profile over the img_size
 %
 % inputs:
@@ -29,44 +29,47 @@ function [ T, pq_map, betas, E, img_size, refractive_idx ]...
 % Length is an array of the segmental length of the MMF (unit: m)
 % Rho is an array of the bending radius (unit: m) of each defined segment. If the segment is straight, Rho = inf
 % Theta is an array of the orientation of the bending of the MMF (unit: rad.)
+% img_size is the physical size (unit: m) of the transverse field images
 % N is the image dimension, e.g., 32
-% n_count_modes is the number of counted modes for a GRIN MMF
 %
 %
 % 2020 Szu-Yu Lee
 % BLCTO at Nokia Bell Labs
 
 %% GRIN MMF parameter initialization (unit in m)
-%D = 50e-6;
-%wo = 9e-6;
 k = 2*pi/lambda;
 a = D/2; 
-n_0 = 1.458;
-n_clad = 1.452;
-Dn = n_0 - n_clad;
+n_0 = 1.4875; 
+% https://www.fiberoptics4sale.com/blogs/archive-posts/95048070-basic-optics-for-optical-fiber
+% n_clad = 1.47; 
+n_clad = sqrt(n_0^2 - NA^2);
+Dn = (n_0 - n_clad)/n_0;
+beta_low = n_0*k*cos(asin(NA/n_0)); % lower bound on beta considering max acceptance angle in MMF
 wo = sqrt(D/(k*n_0*sqrt(2*Dn))); % wo is the waist of the fundamental HG mode (unit: m)
 M = a*k*n_0*sqrt(Dn/2);
 
-img_size = 1*D;
 range = linspace(-img_size/2, img_size/2, N);
-refractive_idx = sqrt(n_0^2 - 2*Dn*(n_0^2)*(range/a).^2);
+refractive_idx = n_0*sqrt(1 - 2*Dn*(range/a).^2);
 [x, y] = meshgrid(range);
 E0 = exp(-(x.^2+y.^2)/wo^2); % create the fundamental gaussian
 
-n_groups = 10;
+n_groups = 40;
 pq_map = zeros(3, n_groups^2);
-pq_map(2,:) = repmat(0:(n_groups-1), 1,n_groups);   % assign p = 1,2,3...1,2,3...
-temp = repmat(0:(n_groups-1), n_groups,1);          % assign q = 1,1,1,...2,2,2,...
-pq_map(3,:) = temp(:);
+temp = repmat(0:(n_groups-1), n_groups,1);          
+pq_map(2,:) = temp(:);                              % assign p = 1,1,1,...2,2,2,...
+pq_map(3,:) = repmat(0:(n_groups-1), 1,n_groups);   % assign q = 1,2,3...1,2,3...
 [pq_map(1, :), I] = sort( pq_map(2,:) + pq_map(3,:) + 1, 'ascend' ); % group by asending p + q + 1
 pq_map(2, :) = pq_map(2,I);
 pq_map(3, :) = pq_map(3,I);
-pq_map = pq_map(:, 1:n_count_modes);
 betas = n_0*k*sqrt( 1 - 2*Dn*(pq_map(1,:)/M) ); % Eq. 9
 
+NMode = sum(betas > beta_low);
+betas = betas(1:NMode);
+pq_map = pq_map(:, 1:NMode);
+
 %% calculation of mode profiles
-E = zeros(N, N, n_count_modes); % scalar field, independent of polarization
-for ii = 1:n_count_modes
+E = zeros(N, N, NMode); % scalar field, independent of polarization
+for ii = 1:NMode
     p = pq_map(2, ii);
     q = pq_map(3, ii);
     
