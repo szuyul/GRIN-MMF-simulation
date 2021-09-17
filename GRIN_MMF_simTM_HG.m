@@ -1,5 +1,5 @@
-function [ T, pq_map, betas, E, img_size, refractive_idx ]...
-              = GRIN_MMF_simTM_HG( lambda, D, Length, Rho, Theta, N, n_count_modes )
+function [ T, NMode, pq_map, betas, E, refractive_idx ]...
+              = GRIN_MMF_simTM_HG( lambda, D, NA, Length, Rho, Theta, img_size, N )
 %GRIN_MMF_simTM_HG simulates the scalar HG modes, a set of Hermite Gaussian functions, 
 % of a GRIN MMF given the specifications and geometry. The HG solutions approximate well to propagation-invariant modes (PIMs.)
 % The code is the implementation of theoretical GRIN MMF model:
